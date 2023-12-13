@@ -3,6 +3,7 @@ package fourth
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 const MaxLenBuffer = 20
@@ -42,6 +43,7 @@ func RunReaderWriters(readersCount, writersCount int, done <-chan bool) {
 		readerIndex := i
 		go func() {
 			for {
+				time.Sleep(1 * time.Millisecond)
 				select {
 				case <-done:
 					return
@@ -55,6 +57,7 @@ func RunReaderWriters(readersCount, writersCount int, done <-chan bool) {
 	for i := 0; i < writersCount; i++ {
 		go func() {
 			for {
+				time.Sleep(1 * time.Millisecond)
 				select {
 				case <-done:
 					return

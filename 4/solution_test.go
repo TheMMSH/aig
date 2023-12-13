@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const WaitDurationForTest = 5000 * time.Millisecond
+const WaitDurationForTest = 100 * time.Millisecond
 
 func TestForAllTheM8N2(t *testing.T) {
 	done := make(chan bool)
