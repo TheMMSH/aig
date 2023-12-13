@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS  seat (
      student VARCHAR
 );
 
-INSERT INTO seat (student) VALUES ('Abbot');
-INSERT INTO seat (student) VALUES ('Doris');
-INSERT INTO seat (student) VALUES ('Emerson');
-INSERT INTO seat (student) VALUES ('Green');
-INSERT INTO seat (student) VALUES ('James');
+INSERT INTO seat VALUES (1, 'Abbot'); -- explicitly have ids to prevent duplicate insertion
+INSERT INTO seat VALUES (2, 'Doris');
+INSERT INTO seat VALUES (3, 'Emerson');
+INSERT INTO seat VALUES (4, 'Green');
+INSERT INTO seat VALUES (5, 'James');
