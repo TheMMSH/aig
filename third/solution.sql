@@ -5,4 +5,4 @@ SELECT (
     ELSE id - 1
     END
 ) AS id, student
-FROM seat, (SELECT COUNT(*) AS sc FROM seat) ORDER BY id;
+FROM seat, (SELECT COUNT(*) AS sc FROM seat) seatCount ORDER BY id;
