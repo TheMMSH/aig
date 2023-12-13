@@ -14,6 +14,7 @@ func TestReturnsEmptyWhenNoAnswer(t *testing.T) {
 
 func TestReturnsValidStringWhenHasAnswer(t *testing.T) {
 	assert.Equal(t, Rearrange("aab"), "aba")
+	assert.Equal(t, Rearrange("h"), "h")
 	assert.Equal(t, Rearrange("abababababababaccdcdcdcddddddddzzzzzzxxxxxxxxx"), "dadadadadadbdbdbdbdbdbxbxzxzxzxzxzxzxcxcacacac")
 	assert.Equal(t, Rearrange("aaacccbbb"), "abacacbcb")
 }

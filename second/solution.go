@@ -1,5 +1,7 @@
 package second
 
+import "sort"
+
 type StrChar struct {
 	Char rune
 	Freq int
@@ -8,7 +10,9 @@ type StrChar struct {
 func Rearrange(s string) string {
 	charFreqs := findCharFreqs(s)
 
-	insertionSort(charFreqs)
+	sort.Slice(charFreqs, func(i, j int) bool {
+		return charFreqs[i].Freq > charFreqs[j].Freq
+	})
 
 	if charFreqs[0].Freq > (len(s)+1)/2 {
 		return ""
@@ -30,22 +34,6 @@ func Rearrange(s string) string {
 	}
 
 	return string(res)
-}
-
-func insertionSort(arr []StrChar) {
-	length := len(arr)
-
-	for i := 1; i < length; i++ {
-		key := arr[i]
-		j := i - 1
-
-		for j >= 0 && arr[j].Freq < key.Freq {
-			arr[j+1] = arr[j]
-			j--
-		}
-
-		arr[j+1] = key
-	}
 }
 
 func findCharFreqs(s string) []StrChar {
