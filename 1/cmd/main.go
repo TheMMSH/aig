@@ -2,7 +2,6 @@ package main
 
 import (
 	"aig/1/pkg"
-	"aig/1/repository"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -22,8 +21,8 @@ func main() {
 	}
 
 	router := gin.New()
-	controllers := pkg.Controller{Service: pkg.Service{Repo: repository.New(conn)}}
-	controllers.SetRoutes(router)
+	service := pkg.NewService(conn)
+	pkg.NewController(service).SetRoutes(router)
 	router.Run(":" + viper.GetString("gin.port"))
 }
 

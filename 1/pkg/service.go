@@ -4,16 +4,25 @@ import (
 	"aig/1/repository"
 	"context"
 	"errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"time"
 )
 
 type Service struct {
-	Repo *repository.Queries
+	repo *repository.Queries
+	DB   *pgx.Conn
+}
+
+func NewService(db *pgx.Conn) Service {
+	return Service{
+		repo: repository.New(db),
+		DB:   db,
+	}
 }
 
 func (s Service) CreateUser(ctx context.Context, user CreateUserRequest) (*User, error) {
-	u, err := s.Repo.CreateUser(ctx, toCreateUserParam(user))
+	u, err := s.repo.CreateUser(ctx, toCreateUserParam(user))
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +32,16 @@ func (s Service) CreateUser(ctx context.Context, user CreateUserRequest) (*User,
 
 func (s Service) GenerateOtp(ctx context.Context, phoneNumber string) (time.Time, error) {
 	expTime := time.Now().Add(OtpValidDuration)
-	_, err := s.Repo.GenerateOTP(ctx, repository.GenerateOTPParams{
-		Otp: pgtype.Text{},
+	randToken, err := generateRandomSequence(4)
+	if err != nil {
+		return time.Now(), errors.New("cannot generate random token, try again later")
+	}
+
+	_, err = s.repo.GenerateOTP(ctx, repository.GenerateOTPParams{
+		Otp: pgtype.Text{
+			String: string(randToken),
+			Valid:  true,
+		},
 		OtpExpirationTime: pgtype.Timestamp{
 			Time:  expTime,
 			Valid: true,
@@ -36,7 +53,7 @@ func (s Service) GenerateOtp(ctx context.Context, phoneNumber string) (time.Time
 }
 
 func (s Service) VerifyOTP(ctx context.Context, req VerifyOtpRequest) error {
-	user, err := s.Repo.VerifyOTP(ctx, req.PhoneNumber)
+	user, err := s.repo.VerifyOTP(ctx, req.PhoneNumber)
 
 	if err != nil {
 		return err

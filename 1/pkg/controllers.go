@@ -10,6 +10,10 @@ type Controller struct {
 	Service Service
 }
 
+func NewController(s Service) Controller {
+	return Controller{Service: s}
+}
+
 func (cr Controller) SetRoutes(e *gin.Engine) {
 	e.GET("/health", cr.health)
 	e.POST("/api/users", cr.createUser)
