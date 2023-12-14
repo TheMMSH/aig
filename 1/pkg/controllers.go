@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Controller struct {
@@ -60,7 +61,7 @@ func (cr Controller) generateOtp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"expires_at": expTime})
+	c.JSON(http.StatusOK, gin.H{"expires_at": expTime.Format(time.RFC3339)})
 }
 
 func (cr Controller) verifyOtp(c *gin.Context) {

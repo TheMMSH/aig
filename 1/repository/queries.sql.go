@@ -35,21 +35,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const generateOTP = `-- name: GenerateOTP :one
-UPDATE users
-SET otp = $1, otp_expiration_time = $2
-WHERE phone_number = $3
-RETURNING id, name, phone_number, otp, otp_expiration_time
+const getUserByPhone = `-- name: GetUserByPhone :one
+SELECT id, name, phone_number, otp, otp_expiration_time
+FROM users
+WHERE phone_number = $1
 `
 
-type GenerateOTPParams struct {
-	Otp               pgtype.Text
-	OtpExpirationTime pgtype.Timestamp
-	PhoneNumber       string
-}
-
-func (q *Queries) GenerateOTP(ctx context.Context, arg GenerateOTPParams) (User, error) {
-	row := q.db.QueryRow(ctx, generateOTP, arg.Otp, arg.OtpExpirationTime, arg.PhoneNumber)
+func (q *Queries) GetUserByPhone(ctx context.Context, phoneNumber string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhone, phoneNumber)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -61,14 +54,21 @@ func (q *Queries) GenerateOTP(ctx context.Context, arg GenerateOTPParams) (User,
 	return i, err
 }
 
-const verifyOTP = `-- name: VerifyOTP :one
-SELECT id, name, phone_number, otp, otp_expiration_time
-FROM users
-WHERE phone_number = $1
+const updateUserOTP = `-- name: UpdateUserOTP :one
+UPDATE users
+SET otp = $1, otp_expiration_time = $2
+WHERE id = $3
+RETURNING id, name, phone_number, otp, otp_expiration_time
 `
 
-func (q *Queries) VerifyOTP(ctx context.Context, phoneNumber string) (User, error) {
-	row := q.db.QueryRow(ctx, verifyOTP, phoneNumber)
+type UpdateUserOTPParams struct {
+	Otp               pgtype.Text
+	OtpExpirationTime pgtype.Timestamp
+	ID                int32
+}
+
+func (q *Queries) UpdateUserOTP(ctx context.Context, arg UpdateUserOTPParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserOTP, arg.Otp, arg.OtpExpirationTime, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,

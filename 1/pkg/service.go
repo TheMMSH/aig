@@ -22,22 +22,49 @@ func NewService(db *pgx.Conn) Service {
 }
 
 func (s Service) CreateUser(ctx context.Context, user CreateUserRequest) (*User, error) {
-	u, err := s.repo.CreateUser(ctx, toCreateUserParam(user))
+	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return toUser(u), err
+	defer tx.Rollback(ctx)
+	qtx := s.repo.WithTx(tx)
+
+	u, err := qtx.GetUserByPhone(ctx, user.PhoneNumber)
+	if err == nil && u.ID > 0 {
+		return nil, errors.New("duplicate phone number")
+	}
+
+	u, err = qtx.CreateUser(ctx, toCreateUserParam(user))
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(u), tx.Commit(ctx)
 }
 
-func (s Service) GenerateOtp(ctx context.Context, phoneNumber string) (time.Time, error) {
+func (s Service) GenerateOtp(ctx context.Context, phoneNumber string) (*time.Time, error) {
 	expTime := time.Now().Add(OtpValidDuration)
 	randToken, err := generateRandomSequence(4)
 	if err != nil {
-		return time.Now(), errors.New("cannot generate random token, try again later")
+		return nil, errors.New("cannot generate random token, try again later")
 	}
 
-	_, err = s.repo.GenerateOTP(ctx, repository.GenerateOTPParams{
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback(ctx)
+	qtx := s.repo.WithTx(tx)
+
+	user, err := qtx.GetUserByPhone(ctx, phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = qtx.UpdateUserOTP(ctx, repository.UpdateUserOTPParams{
+		ID: user.ID,
 		Otp: pgtype.Text{
 			String: string(randToken),
 			Valid:  true,
@@ -46,14 +73,17 @@ func (s Service) GenerateOtp(ctx context.Context, phoneNumber string) (time.Time
 			Time:  expTime,
 			Valid: true,
 		},
-		PhoneNumber: phoneNumber,
 	})
 
-	return expTime, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &expTime, tx.Commit(ctx)
 }
 
 func (s Service) VerifyOTP(ctx context.Context, req VerifyOtpRequest) error {
-	user, err := s.repo.VerifyOTP(ctx, req.PhoneNumber)
+	user, err := s.repo.GetUserByPhone(ctx, req.PhoneNumber)
 
 	if err != nil {
 		return err
