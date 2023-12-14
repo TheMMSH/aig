@@ -54,7 +54,7 @@ func (cr Controller) generateOtp(c *gin.Context) {
 	expTime, err := cr.Service.GenerateOtp(c, otpReq.PhoneNumber)
 	if err != nil {
 		status := http.StatusBadRequest
-		if strings.Contains(err.Error(), "not found") {
+		if strings.Contains(err.Error(), "no rows") {
 			status = http.StatusNotFound
 		}
 		c.JSON(status, gin.H{"err": err.Error()})
