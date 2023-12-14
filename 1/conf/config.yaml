@@ -1,0 +1,3 @@
+postgresSource: "host=localhost user=myuser dbname=mydb sslmode=disable password=mypassword"
+gin:
+  port: 8080
